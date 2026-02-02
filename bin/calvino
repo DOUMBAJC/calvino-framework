@@ -11,21 +11,24 @@
 
 // Autoloading
 if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    // Cas où on exécute depuis bin/calvino
+    // Cas du développement local ou installation comme paquet racine
     require __DIR__ . '/../vendor/autoload.php';
-    if (!defined('BASE_PATH')) {
-        define('BASE_PATH', dirname(__DIR__));
-    }
 } elseif (file_exists(__DIR__ . '/../../../autoload.php')) {
-    // Cas où le framework est installé comme dépendance dans vendor/
+    // Cas où le framework est installé dans le dossier vendor d'un projet
     require __DIR__ . '/../../../autoload.php';
-    if (!defined('BASE_PATH')) {
-        define('BASE_PATH', dirname(dirname(dirname(__DIR__))));
-    }
-    // Si on est dans vendor, le dossier vendor est root/vendor
 } else {
     fwrite(STDERR, "Erreur : Autoloader non trouvé. Veuillez exécuter 'composer install'.\n");
     exit(1);
+}
+
+// Définir le BASE_PATH si non défini (chemin du projet utilisateur)
+if (!defined('BASE_PATH')) {
+    // En mode vendor, BASE_PATH est la racine du projet qui utilise le framework
+    if (file_exists(__DIR__ . '/../../../autoload.php')) {
+        define('BASE_PATH', realpath(__DIR__ . '/../../../../'));
+    } else {
+        define('BASE_PATH', dirname(__DIR__));
+    }
 }
 
 // Définir les variables d'environnement pour simuler une requête HTTP
