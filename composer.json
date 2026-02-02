@@ -1,0 +1,31 @@
+{
+    "name": "calvino/framework",
+    "description": "Le cœur du mini-framework Calvino",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "DOUMBA Jean Calvain",
+            "email": "jeancalvaindoumba07@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "ext-pdo": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Calvino\\": "src/"
+        },
+        "files": [
+            "src/Helpers/functions.php"
+        ]
+    },
+    "bin": [
+        "bin/calvino"
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
