@@ -10,20 +10,29 @@
  */
 
 // Autoloading
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    // Cas où on exécute depuis bin/calvino
-    require __DIR__ . '/../vendor/autoload.php';
-    if (!defined('BASE_PATH')) {
-        define('BASE_PATH', dirname(__DIR__));
+$autoloadPaths = [
+    $GLOBALS['_composer_autoload_path'] ?? null,     // Priority: Composer defined path
+    getcwd() . '/vendor/autoload.php',             // Current directory (most likely skeleton)
+    __DIR__ . '/../../../autoload.php',            // Normal vendor installation
+    __DIR__ . '/../vendor/autoload.php',           // Local framework development
+];
+
+$found = false;
+foreach ($autoloadPaths as $path) {
+    if ($path && file_exists($path)) {
+        require $path;
+        $found = true;
+        
+        // Define BASE_PATH if not defined
+        if (!defined('BASE_PATH')) {
+            // Path leads to root/vendor/autoload.php
+            define('BASE_PATH', dirname(realpath($path), 2));
+        }
+        break;
     }
-} elseif (file_exists(__DIR__ . '/../../../autoload.php')) {
-    // Cas où le framework est installé comme dépendance dans vendor/
-    require __DIR__ . '/../../../autoload.php';
-    if (!defined('BASE_PATH')) {
-        define('BASE_PATH', dirname(dirname(dirname(__DIR__))));
-    }
-    // Si on est dans vendor, le dossier vendor est root/vendor
-} else {
+}
+
+if (!$found) {
     fwrite(STDERR, "Erreur : Autoloader non trouvé. Veuillez exécuter 'composer install'.\n");
     exit(1);
 }

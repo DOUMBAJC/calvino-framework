@@ -122,7 +122,7 @@ class MigrationServiceProvider extends ServiceProvider
         echo "Rollback: $migrationName... ";
         
         // Trouver le fichier correspondant
-        $migrationsPath = dirname(__DIR__, 2) . '/database/migrations';
+        $migrationsPath = base_path('database/migrations');
         $file = $migrationsPath . '/' . $migrationName . '.php';
         
         if (!file_exists($file)) {
@@ -197,7 +197,7 @@ class MigrationServiceProvider extends ServiceProvider
      */
     private function getMigrationFiles(): array
     {
-        $migrationsPath = dirname(__DIR__, 2) . '/database/migrations';
+        $migrationsPath = base_path('database/migrations');
         $files = glob($migrationsPath . '/*.php');
         
         // Trier les fichiers de migration par nom (pour exécuter dans l'ordre)

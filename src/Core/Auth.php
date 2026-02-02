@@ -2,8 +2,8 @@
 
 namespace Calvino\Core;
 
-use Calvino\Models\User;
-use Calvino\Models\UserSession;
+use App\Models\User;
+use App\Models\UserSession;
 use PDO;
 use Calvino\Providers\DatabaseServiceProvider;
 

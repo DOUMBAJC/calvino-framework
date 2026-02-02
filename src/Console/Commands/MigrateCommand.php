@@ -36,12 +36,14 @@ class MigrateCommand extends AnimatedCommand
             $this->title("MIGRATIONS DE BASE DE DONNÉES");
             
             // Animation de préparation
+            $this->loading("Recherche des fichiers de migration...", 1);
             
             // S'assurer que le service de base de données est enregistré
             $dbProvider = new \Calvino\Providers\DatabaseServiceProvider($this->app);
             $dbProvider->register();
             
             // Animation de connexion à la base de données
+            $this->loading("Connexion à la base de données...", 1);
             
             // Si le service migrate n'existe pas, on l'initialise
             if (!$this->app->has('migrate')) {
@@ -49,21 +51,19 @@ class MigrateCommand extends AnimatedCommand
                 $migrateProvider->register();
             }
             
-            // Animation sans affichage des détails de migrations
-            
             // Récupérer le service de migration
             $migrate = $this->app->make('migrate');
-            
-            // Compte à rebours avant de commencer
             
             // Exécuter les migrations
             $migrate->run();
             
-            // Message de succès
-            $this->success("Migrations exécutées avec succès");
+            // Espacement pour la fin
+            echo "\n";
+            $this->success("Migrations terminées avec succès ! 🎉");
         } catch (\Exception $e) {
             // Message d'erreur
-            $this->error("Erreur lors des migrations: " . $e->getMessage());
+            echo "\n";
+            $this->error("Erreur lors des migrations : " . $e->getMessage());
             exit(1);
         }
     }

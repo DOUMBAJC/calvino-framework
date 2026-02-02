@@ -2,7 +2,7 @@
 
 namespace Calvino\Services;
 
-use Calvino\Models\ActivityLog;
+use App\Models\ActivityLog;
 
 class AuditService
 {
@@ -30,6 +30,6 @@ class AuditService
      */
     public static function logAction(int|string $userId, string $action, string $module, string $description, ?array $oldValues = null, ?array $newValues = null): void
     {
-        ActivityLog::log($userId, $action, $module, $description);
+        ActivityLog::log($userId, $action, $module, $description, $oldValues, $newValues);
     }
 }

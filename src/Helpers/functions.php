@@ -35,6 +35,18 @@ function env(string $key, $default = null)
 
 
 /**
+ * Retourne le chemin de base du projet
+ * 
+ * @param string $path
+ * @return string
+ */
+function base_path(string $path = ''): string
+{
+    $base = defined('BASE_PATH') ? BASE_PATH : dirname(__DIR__, 2);
+    return $base . ($path ? DIRECTORY_SEPARATOR . ltrim($path, DIRECTORY_SEPARATOR) : '');
+}
+
+/**
  * Récupère une valeur de configuration
  *
  * @param string $key
@@ -45,12 +57,13 @@ function config(string $key, $default = null)
 {
     $keys = explode('.', $key);
     $file = array_shift($keys);
+    $configPath = base_path("config/{$file}.php");
     
-    if (!file_exists(BASE_PATH . "/config/{$file}.php")) {
+    if (!file_exists($configPath)) {
         return $default;
     }
     
-    $config = require BASE_PATH . "/config/{$file}.php";
+    $config = require $configPath;
     
     foreach ($keys as $segment) {
         if (!isset($config[$segment])) {
@@ -222,4 +235,55 @@ function auth()
     }
     
     return $auth;
+}
+
+/**
+ * Récupère tous les traits utilisés par une classe, ses parents et ses traits
+ *
+ * @param object|string $class
+ * @return array
+ */
+function class_uses_recursive($class): array
+{
+    if (is_object($class)) {
+        $class = get_class($class);
+    }
+
+    $results = [];
+
+    foreach (array_reverse(class_parents($class)) + [$class => $class] as $class) {
+        $results += trait_uses_recursive($class);
+    }
+
+    return array_unique($results);
+}
+
+/**
+ * Récupère tous les traits utilisés par un trait
+ *
+ * @param string $trait
+ * @return array
+ */
+function trait_uses_recursive(string $trait): array
+{
+    $traits = class_uses($trait) ?: [];
+
+    foreach ($traits as $trait) {
+        $traits += trait_uses_recursive($trait);
+    }
+
+    return $traits;
+}
+
+/**
+ * Obtient le nom de la classe sans espace de noms
+ *
+ * @param string|object $class
+ * @return string
+ */
+function class_basename($class): string
+{
+    $class = is_object($class) ? get_class($class) : $class;
+    $parts = explode('\\', $class);
+    return end($parts);
 }

@@ -2,7 +2,7 @@
 
 namespace Calvino\Services;
 
-use Calvino\Models\Notification;
+use App\Models\Notification;
 
 class NotificationService
 {

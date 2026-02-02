@@ -63,6 +63,20 @@ abstract class Model implements JsonSerializable
     protected array $attributes = [];
 
     /**
+     * Les attributs originaux du modèle
+     *
+     * @var array
+     */
+    protected array $original = [];
+
+    /**
+     * Callbacks pour les événements du modèle
+     * 
+     * @var array
+     */
+    protected static array $events = [];
+
+    /**
      * Constructeur
      *
      * @param array $attributes
@@ -70,6 +84,93 @@ abstract class Model implements JsonSerializable
     public function __construct(array $attributes = [])
     {
         $this->fill($attributes);
+        $this->syncOriginal();
+        $this->bootIfNotBooted();
+    }
+
+    /**
+     * Initialise le modèle si ce n'est pas déjà fait
+     */
+    protected function bootIfNotBooted(): void
+    {
+        $class = static::class;
+        if (!isset(static::$events[$class])) {
+            static::$events[$class] = [
+                'created' => [],
+                'updated' => [],
+                'deleted' => []
+            ];
+            
+            // Appeler les méthodes bootTraits
+            $this->bootTraits();
+        }
+    }
+
+    /**
+     * Initialise les traits du modèle
+     */
+    protected function bootTraits(): void
+    {
+        $class = static::class;
+        foreach (class_uses_recursive($class) as $trait) {
+            $method = 'boot' . class_basename($trait);
+            if (method_exists($class, $method)) {
+                forward_static_call([$class, $method]);
+            }
+        }
+    }
+
+    /**
+     * Enregistre un callback pour l'événement 'created'
+     */
+    public static function created(\Closure $callback): void
+    {
+        static::registerEvent('created', $callback);
+    }
+
+    /**
+     * Enregistre un callback pour l'événement 'updated'
+     */
+    public static function updated(\Closure $callback): void
+    {
+        static::registerEvent('updated', $callback);
+    }
+
+    /**
+     * Enregistre un callback pour l'événement 'deleted'
+     */
+    public static function deleted(\Closure $callback): void
+    {
+        static::registerEvent('deleted', $callback);
+    }
+
+    /**
+     * Enregistre un événement
+     */
+    protected static function registerEvent(string $event, \Closure $callback): void
+    {
+        $class = static::class;
+        if (!isset(static::$events[$class])) {
+            static::$events[$class] = [
+                'created' => [],
+                'updated' => [],
+                'deleted' => []
+            ];
+        }
+        static::$events[$class][$event][] = $callback;
+    }
+
+    /**
+     * Déclenche un événement
+     */
+    protected function fireEvent(string $event): void
+    {
+        $class = static::class;
+        if (isset(static::$events[$class][$event])) {
+            foreach (static::$events[$class][$event] as $callback) {
+                $callback($this);
+            }
+        }
     }
 
     /**
@@ -88,6 +189,39 @@ abstract class Model implements JsonSerializable
         }
         
         return $this;
+    }
+
+    /**
+     * Synchronise les attributs originaux avec les attributs actuels
+     */
+    public function syncOriginal(): void
+    {
+        $this->original = $this->attributes;
+    }
+
+    /**
+     * Récupère les attributs modifiés
+     */
+    public function getDirty(): array
+    {
+        $dirty = [];
+        foreach ($this->attributes as $key => $value) {
+            if (!isset($this->original[$key]) || $this->original[$key] !== $value) {
+                $dirty[$key] = $value;
+            }
+        }
+        return $dirty;
+    }
+
+    /**
+     * Récupère un attribut original
+     */
+    public function getOriginal(string $key = null, $default = null)
+    {
+        if ($key === null) {
+            return $this->original;
+        }
+        return $this->original[$key] ?? $default;
     }
 
     /**
@@ -210,8 +344,12 @@ abstract class Model implements JsonSerializable
         $stmt = self::getPdo()->prepare($sql);
         $result = $stmt->execute(array_values($this->attributes));
         
-        if ($result && $this->incrementing) {
-            $this->attributes[$this->primaryKey] = self::getPdo()->lastInsertId();
+        if ($result) {
+            if ($this->incrementing) {
+                $this->attributes[$this->primaryKey] = self::getPdo()->lastInsertId();
+            }
+            $this->syncOriginal();
+            $this->fireEvent('created');
         }
         
         return $result;
@@ -243,6 +381,11 @@ abstract class Model implements JsonSerializable
      */
     protected function update(): bool
     {
+        $dirty = $this->getDirty();
+        if (empty($dirty)) {
+            return true;
+        }
+
         $fields = [];
         $values = [];
         
@@ -260,7 +403,14 @@ abstract class Model implements JsonSerializable
         $values[] = $this->attributes[$this->primaryKey];
         
         $stmt = self::getPdo()->prepare($sql);
-        return $stmt->execute($values);
+        $result = $stmt->execute($values);
+
+        if ($result) {
+            $this->syncOriginal();
+            $this->fireEvent('updated');
+        }
+
+        return $result;
     }
 
     /**
@@ -277,7 +427,13 @@ abstract class Model implements JsonSerializable
         $sql = "DELETE FROM {$this->table} WHERE {$this->primaryKey} = ?";
         
         $stmt = self::getPdo()->prepare($sql);
-        return $stmt->execute([$this->attributes[$this->primaryKey]]);
+        $result = $stmt->execute([$this->attributes[$this->primaryKey]]);
+
+        if ($result) {
+            $this->fireEvent('deleted');
+        }
+
+        return $result;
     }
 
     /**
@@ -424,15 +580,3 @@ abstract class Model implements JsonSerializable
         return $this->attributes;
     }
 }
-
-/**
- * Obtient le nom de la classe sans espace de noms
- *
- * @param string $class
- * @return string
- */
-function class_basename(string $class): string
-{
-    $parts = explode('\\', $class);
-    return end($parts);
-} 
