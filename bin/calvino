@@ -9,12 +9,12 @@
  * Point d'entrée pour les commandes en ligne de commande
  */
 
-// Autoloading
+// Chargement de l'autoloader
 $autoloadPaths = [
-    $GLOBALS['_composer_autoload_path'] ?? null,     // Priority: Composer defined path
-    getcwd() . '/vendor/autoload.php',             // Current directory (most likely skeleton)
-    __DIR__ . '/../../../autoload.php',            // Normal vendor installation
-    __DIR__ . '/../vendor/autoload.php',           // Local framework development
+    $GLOBALS['_composer_autoload_path'] ?? null,     // Priorité : Chemin défini par Composer
+    getcwd() . '/vendor/autoload.php',             // Répertoire courant (probablement le skeleton)
+    __DIR__ . '/../../../autoload.php',            // Installation standard dans vendor/
+    __DIR__ . '/../vendor/autoload.php',           // Développement local du framework
 ];
 
 $found = false;
@@ -23,9 +23,9 @@ foreach ($autoloadPaths as $path) {
         require $path;
         $found = true;
         
-        // Define BASE_PATH if not defined
+        // Définir BASE_PATH si non défini
         if (!defined('BASE_PATH')) {
-            // Path leads to root/vendor/autoload.php
+            // Le chemin mène à root/vendor/autoload.php
             define('BASE_PATH', dirname(realpath($path), 2));
         }
         break;

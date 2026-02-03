@@ -30,9 +30,9 @@ class ServeCommand extends AnimatedCommand
      */
     public function handle(): void
     {
-        // Récupérer l'hôte et le port depuis les arguments ou utiliser les valeurs par défaut
-        $host = $this->getArgument('host', '127.0.0.1');
-        $port = $this->getArgument('port', '8000');
+        // Récupérer l'hôte et le port (CLI > ENV > Défaut)
+        $host = $this->getArgument('host') ?? env('SERVER_HOST') ?? env('HOST', '127.0.0.1');
+        $port = $this->getArgument('port') ?? env('SERVER_PORT') ?? env('PORT', '8000');
         
         // Déterminer le répertoire public
         $publicDir = $this->getPublicDirectory();
