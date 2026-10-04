@@ -124,7 +124,7 @@ return new class extends Migration
 
 ```bash
 vendor/bin/calvino help                              # every command
-vendor/bin/calvino make:migration User           
+vendor/bin/calvino make:migration User
 vendor/bin/calvino migrate
 vendor/bin/calvino route:list
 vendor/bin/calvino serve
