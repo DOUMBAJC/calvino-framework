@@ -13,7 +13,7 @@ Il sert à reprendre le travail si une session s'arrête en cours de route.
 - [x] 2. Tests du routeur (`src/Core/Router.php`, `Route.php`) : correspondance, paramètres, méthodes, 404.
 - [x] 3. Tests de `Env` et `Request` (sans réseau ni base). `Response` n'est pas testé : `send()` appelle `exit`, il faudrait d'abord le refactorer.
 - [x] 4. Tests du `QueryBuilder` et du `Model` sur SQLite en mémoire.
-- [ ] 5. CI GitHub Actions : PHP 8.2, 8.3, 8.4, `composer test`.
+- [x] 5. CI GitHub Actions : PHP 8.2, 8.3, 8.4, `composer test`.
 - [ ] 6. README en anglais : ce que c'est, installation, démarrage rapide, routes, modèles, migrations, CLI, tests.
 - [ ] 7. Relecture finale, suppression de ce fichier, compte rendu à Calvino.
 
