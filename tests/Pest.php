@@ -16,7 +16,7 @@ if (!defined('BASE_PATH')) {
 /**
  * Request lit les superglobales à la construction : on les pose, puis on la crée.
  */
-function makeRequest(string $method, string $uri, array $server = []): Request
+function makeRequest(string $method, string $uri, array $server = [], array $post = []): Request
 {
     $_SERVER = array_merge(['REQUEST_METHOD' => $method, 'REQUEST_URI' => $uri], $server);
     $query = parse_url($uri, PHP_URL_QUERY);
@@ -24,7 +24,7 @@ function makeRequest(string $method, string $uri, array $server = []): Request
     if ($query) {
         parse_str($query, $_GET);
     }
-    $_POST = [];
+    $_POST = $post;
     $_FILES = [];
 
     return new Request();

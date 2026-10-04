@@ -11,7 +11,7 @@ Il sert à reprendre le travail si une session s'arrête en cours de route.
 
 - [x] 1. Outillage de test : Pest 3 en `require-dev`, `phpunit.xml`, `tests/Pest.php`, script `composer test`.
 - [x] 2. Tests du routeur (`src/Core/Router.php`, `Route.php`) : correspondance, paramètres, méthodes, 404.
-- [ ] 3. Tests de `Env`, `Request`, `Response` (sans réseau ni base).
+- [x] 3. Tests de `Env` et `Request` (sans réseau ni base). `Response` n'est pas testé : `send()` appelle `exit`, il faudrait d'abord le refactorer.
 - [ ] 4. Tests du `QueryBuilder` et du `Model` sur SQLite en mémoire.
 - [ ] 5. CI GitHub Actions : PHP 8.2, 8.3, 8.4, `composer test`.
 - [ ] 6. README en anglais : ce que c'est, installation, démarrage rapide, routes, modèles, migrations, CLI, tests.
@@ -23,3 +23,8 @@ Les bugs trouvés par les tests et leur correctif s'écrivent ici, une ligne cha
 - Routeur : une route closure (`$router->get('/x', fn () => …)`) levait InvalidArgumentException. Corrigé dans `Router::addRoute` et `Route::__construct`.
 - Routeur : les segments littéraux n'étaient pas échappés, `/report.pdf` acceptait `/reportXpdf`. Corrigé par `preg_quote` dans `Route::pathToRegex`.
 - Routeur : une action sans `@` produisait un avertissement et une route cassée au lieu d'une erreur. Elle lève maintenant InvalidArgumentException.
+- Request : `Content-Type` et `Content-Length` n'étaient jamais lus (PHP les range sans préfixe `HTTP_`), donc `isJson()` restait faux. Corrigé dans `getHeaderParams`.
+- Request : `X-HTTP-Method-Override: delete` en minuscules ne correspondait à aucune route. La méthode est passée en majuscules.
+- Request : `numeric|min:18` comparait la longueur de « 25 » (2) au lieu de sa valeur. `min`/`max` comparent la valeur quand le champ porte `numeric` ou `integer`.
+- Env : une ligne sans `=` levait un avertissement et créait une variable vide. Elle est ignorée.
+- `phpunit.xml` échoue désormais sur tout avertissement ou dépréciation PHP.

@@ -121,6 +121,11 @@ class Request
     private float $startTime;
 
     /**
+     * Le champ en cours de validation porte la règle numeric ou integer
+     */
+    private bool $numericField = false;
+
+    /**
      * Constructeur
      */
     public function __construct()
@@ -154,7 +159,7 @@ class Request
         // Vérifier si la méthode est écrasée via X-HTTP-Method-Override
         if ($method === 'POST') {
             if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
-                $method = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
+                $method = strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
             }
         }
         
@@ -230,6 +235,13 @@ class Request
             if (substr($key, 0, 5) === 'HTTP_') {
                 $header = str_replace(' ', '-', ucwords(str_replace('_', ' ', strtolower(substr($key, 5)))));
                 $headers[$header] = $value;
+            }
+        }
+
+        // PHP range ces deux en-têtes sans le préfixe HTTP_ : sans eux, isJson() restait toujours faux.
+        foreach (['CONTENT_TYPE' => 'Content-Type', 'CONTENT_LENGTH' => 'Content-Length'] as $key => $header) {
+            if (isset($_SERVER[$key])) {
+                $headers[$header] = $_SERVER[$key];
             }
         }
         
@@ -410,6 +422,10 @@ class Request
             }
             
             $value = $this->input($field);
+
+            // Un champ de formulaire arrive toujours en chaîne : sans ce drapeau, min:18 comparait la longueur de « 25 ».
+            $ruleNames = array_map(fn ($rule) => explode(':', (string) $rule, 2)[0], $rules);
+            $this->numericField = in_array('numeric', $ruleNames, true) || in_array('integer', $ruleNames, true);
             
             // Traiter chaque règle séparément
             foreach ($rules as $rule) {
@@ -680,6 +696,10 @@ class Request
         
         $min = isset($parameters[0]) ? (int) $parameters[0] : 0;
         
+        if ($this->numericField && is_numeric($value)) {
+            return $value >= $min;
+        }
+
         if (is_string($value)) {
             // Utiliser strlen au lieu de mb_strlen pour les performances
             if (strlen($value) > $this->maxStringLength) {
@@ -715,6 +735,10 @@ class Request
         
         $max = isset($parameters[0]) ? (int) $parameters[0] : PHP_INT_MAX;
         
+        if ($this->numericField && is_numeric($value)) {
+            return $value <= $max;
+        }
+
         if (is_string($value)) {
             // Utiliser strlen au lieu de mb_strlen pour les performances
             if (strlen($value) > $this->maxStringLength) {
