@@ -172,7 +172,7 @@ class User extends Model
             return null;
         }
         
-        return new static($record);
+        return static::fromRecord($record);
     }
     
     /**
@@ -192,7 +192,7 @@ class User extends Model
         
         $admins = [];
         foreach ($records as $record) {
-            $admins[] = new User($record);
+            $admins[] = User::fromRecord($record);
         }
         
         return $admins;

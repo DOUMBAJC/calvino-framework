@@ -205,7 +205,7 @@ class UserSession extends Model
             return null;
         }
         
-        return new self($record);
+        return self::fromRecord($record);
     }
     
     /**
@@ -227,7 +227,7 @@ class UserSession extends Model
         $sessions = [];
         
         foreach ($records as $record) {
-            $sessions[] = new self($record);
+            $sessions[] = self::fromRecord($record);
         }
         
         return $sessions;

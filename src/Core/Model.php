@@ -80,14 +80,34 @@ abstract class Model implements JsonSerializable
      */
     public function fill(array $attributes): self
     {
+        // La clé primaire reste hors affectation de masse : un id venu d'un corps de requête ferait réécrire une autre ligne par save().
         foreach ($attributes as $key => $value) {
-            // Toujours inclure la clé primaire dans les attributs, même si elle n'est pas dans fillable
-            if ($key === $this->primaryKey || in_array($key, $this->fillable)) {
+            if (in_array($key, $this->fillable, true)) {
                 $this->attributes[$key] = $value;
             }
         }
         
         return $this;
+    }
+
+    /**
+     * Fixe la connexion partagée par tous les modèles (tests, scripts, injection manuelle).
+     */
+    public static function setConnection(PDO $pdo): void
+    {
+        self::$pdo = $pdo;
+    }
+
+    /**
+     * Construit un modèle depuis une ligne lue en base : toutes les colonnes, clé primaire comprise.
+     * Le constructeur, lui, filtre par fillable et perdait created_at et les autres colonnes.
+     */
+    public static function fromRecord(array $record): static
+    {
+        $model = new static();
+        $model->attributes = $record;
+
+        return $model;
     }
 
     /**
@@ -122,7 +142,7 @@ abstract class Model implements JsonSerializable
             
             $models = [];
             foreach ($records as $record) {
-                $models[] = new static($record);
+                $models[] = static::fromRecord($record);
             }
             
             return $models;
@@ -156,7 +176,7 @@ abstract class Model implements JsonSerializable
             return null;
         }
         
-        return new static($record);
+        return static::fromRecord($record);
     }
 
     /**
@@ -388,7 +408,7 @@ abstract class Model implements JsonSerializable
         
         $models = [];
         foreach ($records as $record) {
-            $models[] = new $related($record);
+            $models[] = $related::fromRecord($record);
         }
         
         return $models;

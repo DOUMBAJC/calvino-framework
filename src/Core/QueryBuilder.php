@@ -10,6 +10,8 @@ use PDO;
  */
 class QueryBuilder
 {
+    private const OPERATORS = ['=', '!=', '<>', '<', '<=', '>', '>=', 'LIKE', 'NOT LIKE'];
+
     /**
      * Instance PDO
      *
@@ -96,6 +98,16 @@ class QueryBuilder
      */
     public function where(string $column, $value, string $operator = '='): self
     {
+        // Colonne et opérateur entrent tels quels dans le SQL : seules les valeurs sont liées.
+        $operator = strtoupper(trim($operator));
+        if (!in_array($operator, self::OPERATORS, true)) {
+            throw new \InvalidArgumentException("Opérateur SQL non autorisé : {$operator}");
+        }
+
+        if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$/', $column)) {
+            throw new \InvalidArgumentException("Nom de colonne invalide : {$column}");
+        }
+
         $this->wheres[] = [
             'column' => $column,
             'value' => $value,
@@ -215,7 +227,7 @@ class QueryBuilder
         $models = [];
         
         foreach ($records as $record) {
-            $models[] = new $this->model($record);
+            $models[] = $this->model::fromRecord($record);
         }
         
         return $models;

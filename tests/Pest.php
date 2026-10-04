@@ -29,3 +29,18 @@ function makeRequest(string $method, string $uri, array $server = [], array $pos
 
     return new Request();
 }
+
+/**
+ * Ouvre une base SQLite en mémoire, crée le schéma des fixtures et la branche sur Model.
+ */
+function freshDatabase(): PDO
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->exec('CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, role TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)');
+    $pdo->exec('CREATE TABLE posts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, title TEXT)');
+    $pdo->exec('CREATE TABLE tokens (id TEXT PRIMARY KEY, label TEXT)');
+    \Calvino\Core\Model::setConnection($pdo);
+
+    return $pdo;
+}

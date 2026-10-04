@@ -286,6 +286,6 @@ class Auth
             return null;
         }
         
-        return new User($userData);
+        return User::fromRecord($userData);
     }
 } 
