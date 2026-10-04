@@ -14,7 +14,7 @@ Il sert à reprendre le travail si une session s'arrête en cours de route.
 - [x] 3. Tests de `Env` et `Request` (sans réseau ni base). `Response` n'est pas testé : `send()` appelle `exit`, il faudrait d'abord le refactorer.
 - [x] 4. Tests du `QueryBuilder` et du `Model` sur SQLite en mémoire.
 - [x] 5. CI GitHub Actions : PHP 8.2, 8.3, 8.4, `composer test`.
-- [ ] 6. README en anglais : ce que c'est, installation, démarrage rapide, routes, modèles, migrations, CLI, tests.
+- [x] 6. README en anglais : ce que c'est, installation, démarrage rapide, routes, modèles, migrations, CLI, tests.
 - [ ] 7. Relecture finale, suppression de ce fichier, compte rendu à Calvino.
 
 ## Journal
@@ -32,3 +32,4 @@ Les bugs trouvés par les tests et leur correctif s'écrivent ici, une ligne cha
 - Model (sécurité) : `fill()` acceptait la clé primaire, donc `User::create($request->all())` avec un `id` dans le corps réécrivait une autre ligne. La clé primaire n'est plus mass-assignable.
 - Model : une ligne lue en base passait par le constructeur, filtré par `fillable` : `created_at` et toute colonne hors fillable étaient perdus. Nouveau `Model::fromRecord()`, utilisé partout où une ligne de base devient un modèle (Model, QueryBuilder, User, UserSession, Auth).
 - QueryBuilder (sécurité) : l'opérateur et la colonne de `where()` entraient tels quels dans le SQL. Opérateurs en liste blanche, colonne validée comme identifiant.
+- Base par défaut `pharmacie` / `pharmacie_manager` (restes d'un ancien projet) dans `DatabaseServiceProvider` et `DbCreateCommand`. Renommée `calvino`.
