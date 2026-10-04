@@ -1,6 +1,6 @@
 {
     "name": "calvino/framework",
-    "description": "Le cœur du mini-framework Calvino",
+    "description": "A small PHP framework for JSON APIs: router, models, migrations and a CLI.",
     "type": "library",
     "license": "MIT",
     "authors": [
