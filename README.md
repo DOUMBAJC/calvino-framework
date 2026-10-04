@@ -145,6 +145,10 @@ composer test
 
 The Pest suite runs on an in-memory SQLite database, so it needs no server. CI runs it on PHP 8.2, 8.3 and 8.4.
 
+## Releases
+
+Date the top section of `CHANGELOG.md` (`## 2.1.0 — 2026-11-02`) and merge into `main`. Once the tests pass, the `release` workflow creates the tag and the GitHub release, and Packagist picks up the version.
+
 ## License
 
 MIT. Contributions: see [CONTRIBUTING.md](CONTRIBUTING.md).
