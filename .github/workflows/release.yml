@@ -25,7 +25,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          version=$(grep -m1 -oP '^## \K[0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md || true)
+          # Seul le premier titre compte : une section « Unreleased » en tête ne publie rien.
+          version=$(grep -m1 '^## ' CHANGELOG.md | grep -oP '^## \[?\K[0-9]+\.[0-9]+\.[0-9]+' || true)
           if [ -z "$version" ]; then
             echo "Aucune version datée en tête du CHANGELOG : rien à publier."
             exit 0
@@ -35,5 +36,5 @@ jobs:
             echo "$tag existe déjà."
             exit 0
           fi
-          awk -v v="$version" 'index($0, "## " v) == 1 { f = 1; next } /^## / { f = 0 } f' CHANGELOG.md > notes.md
+          awk 'NR > 1 && /^## / && f { exit } f && !/^---$/ { print } /^## / && !f { f = 1 }' CHANGELOG.md > notes.md
           gh release create "$tag" --target "$SHA" --title "$tag" --notes-file notes.md
