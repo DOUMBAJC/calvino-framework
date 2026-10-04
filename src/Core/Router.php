@@ -112,10 +112,15 @@ class Router
             $uri = rtrim($this->prefix, '/') . '/' . ltrim($uri, '/');
         }
         
-        // Traiter l'action
-        if (is_string($action)) {
-            // Format: 'Controller@method'
-            list($controller, $actionMethod) = explode('@', $action);
+        // Route doit retrouver la closure en action[0] (hasClosure, getClosure).
+        if ($action instanceof \Closure) {
+            $action = [$action];
+        } elseif (is_string($action)) {
+            if (strpos($action, '@') === false) {
+                throw new \InvalidArgumentException("L'action doit être une closure, un tableau ou une chaîne au format 'Controller@method'");
+            }
+
+            list($controller, $actionMethod) = explode('@', $action, 2);
             
             // Ajouter l'espace de noms si défini
             if ($this->namespace && strpos($controller, '\\') !== 0) {

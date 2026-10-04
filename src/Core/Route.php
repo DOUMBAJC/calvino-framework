@@ -55,7 +55,9 @@ class Route
         $this->method = $method;
         $this->path = $path;
         
-        if (is_array($action)) {
+        if ($action instanceof \Closure) {
+            $this->action = [$action];
+        } elseif (is_array($action)) {
             $this->action = $action;
         } elseif (is_string($action) && strpos($action, '@') !== false) {
             list($controller, $method) = explode('@', $action);
@@ -64,7 +66,7 @@ class Route
                 'method' => $method
             ];
         } else {
-            throw new \InvalidArgumentException("L'action doit être un tableau ou une chaîne au format 'Controller@method'");
+            throw new \InvalidArgumentException("L'action doit être une closure, un tableau ou une chaîne au format 'Controller@method'");
         }
     }
 
@@ -86,33 +88,13 @@ class Route
         $normalizedPath = trim($path, '/');
         $normalizedRoutePath = trim($this->path, '/');
         
-        // Si les deux chemins sont vides (racine), ils correspondent
-        if ($normalizedPath === '' && $normalizedRoutePath === '') {
-            return true;
-        }
-        
-        // Comparaison exacte après normalisation
         if ($normalizedPath === $normalizedRoutePath) {
+            $this->params = [];
             return true;
         }
-        
-        // Conversion du chemin de la route en expression régulière
-        $pattern = $this->pathToRegex();
-        
-        // Vérification de la correspondance
-        if (preg_match($pattern, $path, $matches)) {
-            // Extraction des paramètres
-            array_shift($matches); // Supprime la correspondance complète
-            $this->params = $matches;
-            return true;
-        }
-        
-        // Essayer aussi avec le chemin normalisé
-        $normalizedPattern = "#^" . preg_replace('/\{([a-zA-Z0-9_]+)\}/', '([^/]+)', $normalizedRoutePath) . "$#";
-        
-        if (preg_match($normalizedPattern, $normalizedPath, $matches)) {
-            // Extraction des paramètres
-            array_shift($matches); // Supprime la correspondance complète
+
+        if (preg_match($this->pathToRegex($normalizedRoutePath), $normalizedPath, $matches)) {
+            array_shift($matches);
             $this->params = $matches;
             return true;
         }
@@ -121,17 +103,15 @@ class Route
     }
 
     /**
-     * Convertit le chemin en expression régulière
-     *
-     * @return string
+     * Convertit un chemin de route en expression régulière.
+     * Les segments littéraux sont échappés : sans preg_quote, le point de
+     * « /report.pdf » acceptait n'importe quel caractère.
      */
-    private function pathToRegex(): string
+    private function pathToRegex(string $path): string
     {
-        // Remplace les paramètres par une expression régulière
-        $regex = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '([^/]+)', $this->path);
-        
-        // Ajoute les délimiteurs et les ancres
-        return "#^$regex$#";
+        $regex = preg_replace('/\\\\\{([a-zA-Z0-9_]+)\\\\\}/', '([^/]+)', preg_quote($path, '#'));
+
+        return "#^{$regex}$#";
     }
 
     /**
