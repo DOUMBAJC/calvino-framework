@@ -3,3 +3,4 @@ composer.lock
 .vscode/
 .phpunit.result.cache
 php_errors.log
+.phpunit.cache/

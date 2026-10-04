@@ -9,7 +9,7 @@ Il sert à reprendre le travail si une session s'arrête en cours de route.
 
 ## Étapes (dans l'ordre, une étape = un commit poussé)
 
-- [ ] 1. Outillage de test : Pest 3 en `require-dev`, `phpunit.xml`, `tests/Pest.php`, script `composer test`.
+- [x] 1. Outillage de test : Pest 3 en `require-dev`, `phpunit.xml`, `tests/Pest.php`, script `composer test`.
 - [ ] 2. Tests du routeur (`src/Core/Router.php`, `Route.php`) : correspondance, paramètres, méthodes, 404.
 - [ ] 3. Tests de `Env`, `Request`, `Response` (sans réseau ni base).
 - [ ] 4. Tests du `QueryBuilder` et du `Model` sur SQLite en mémoire.
